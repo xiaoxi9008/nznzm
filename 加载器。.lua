@@ -25,6 +25,9 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
   Button2 = "作者qq：3574769415",
 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+WindUI.TransparencyValue = 0.2
+WindUI:SetTheme("Dark")
+
 local rainbowBorderAnimation
 local currentBorderColorScheme = "彩虹颜色"
 local currentFontColorScheme = "彩虹颜色"
