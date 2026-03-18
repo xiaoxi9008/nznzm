@@ -318,20 +318,14 @@ Button(Tabjb, "正在寻求", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/xiaoxi9008/xiaoxi9008.github.io/refs/heads/main/SX%E9%80%9A%E7%BC%89%E6%BA%90%E7%A0%81%EF%BC%88KENNY%EF%BC%89.lua"))() 
 end)
 
-Button(Tabjb, "终极战场", function()
-    -- 1. 加载你的服务器脚本
+Button(Tabjb, "我快被气死了", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/xiaoxi9008/Xiaoxi/refs/heads/main/Kanl%E6%9C%80%E6%96%B0%E7%BB%88%E6%9E%81%E6%88%98%E5%9C%BA%E6%BA%90%E7%A0%81.lua"))()
-    
-    -- 2. 等待0.5秒，确保脚本加载完成
     task.wait(0.5)
-    
-    -- 3. 直接摧毁整个加载器UI，无任何确认框
-    if Library then
-        Library:Unload() -- 推荐：官方卸载方法，干净彻底
-        -- 备选：Library:Destroy() -- 底层强制销毁，兼容性更强
+    -- 直接把加载器从父级移除，无视任何弹窗逻辑
+    if Library and Library.Parent then
+        Library.Parent = nil
     end
 end)
-
 
 Button(Tabjb, "偷走一粒红", function() 
         loadstring(game:HttpGet("https://raw.githubusercontent.com/xiaoxi9008/Xiaoxi/refs/heads/main/%E5%81%B7%E8%B5%B0%E8%84%91%E7%BA%A2.lua"))() 
