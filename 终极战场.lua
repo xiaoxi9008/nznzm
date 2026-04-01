@@ -82,9 +82,161 @@ local Window = WindUI:CreateWindow({
     ScrollBarEnabled = true
 })
 Window:Tag({
-    Title = "XIAOXI",
-    Color = Color3.fromHex("#30ff6a")
+    Title = "终极战场",
+    Color = Color3.fromHex("FF69B4")
 })
+
+WindUI.Themes.Dark.Button = Color3.fromRGB(255, 255, 255)  
+WindUI.Themes.Dark.ButtonBorder = Color3.fromRGB(255, 255, 255)  
+
+local function addButtonBorderStyle()
+    local mainFrame = Window.UIElements.Main
+    if not mainFrame then return end
+    
+    local styleSheet = Instance.new("StyleSheet")
+    styleSheet.Parent = mainFrame
+    
+    local rule = Instance.new("StyleRule")
+    rule.Selector = "Button, ImageButton, TextButton"
+    rule.Parent = styleSheet
+    
+    local borderProp = Instance.new("StyleProperty")
+    borderProp.Name = "BorderSizePixel"
+    borderProp.Value = 1
+    borderProp.Parent = rule
+    
+    local colorProp = Instance.new("StyleProperty")
+    colorProp.Name = "BorderColor3"
+    colorProp.Value = Color3.fromRGB(255, 255, 255)
+    colorProp.Parent = rule
+end
+
+Window:CreateTopbarButton("theme-switcher", "moon", function()
+    local themes_list = {"Dark", "Light", "Mocha", "Aqua"}
+    currentThemeIndex = (currentThemeIndex % #themes_list) + 1
+    local newTheme = themes_list[currentThemeIndex]
+    WindUI:SetTheme(newTheme)
+    WindUI:Notify({
+        Title = "主题已切换",
+        Content = "当前主题: "..newTheme,
+        Duration = 2
+    })
+end, 990)
+
+WindUI.Themes.Dark.Toggle = Color3.fromHex("FF69B4")
+WindUI.Themes.Dark.Checkbox = Color3.fromHex("FFB6C1")
+WindUI.Themes.Dark.Button = Color3.fromHex("FF1493")
+WindUI.Themes.Dark.Slider = Color3.fromHex("FF69B4")
+
+local COLOR_SCHEMES = {
+    ["彩虹颜色"] = {ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("FF0000")),
+        ColorSequenceKeypoint.new(0.16, Color3.fromHex("FFA500")),
+        ColorSequenceKeypoint.new(0.33, Color3.fromHex("FFFF00")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("00FF00")),
+        ColorSequenceKeypoint.new(0.66, Color3.fromHex("0000FF")),
+        ColorSequenceKeypoint.new(0.83, Color3.fromHex("4B0082")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("EE82EE"))
+    }), "palette"},
+    
+    ["樱花粉1"] = {ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("FF69B4")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("FF1493")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("FFB6C1"))
+    }), "candy"},
+
+    ["樱花粉2"] = {ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("FED0E0")),
+        ColorSequenceKeypoint.new(0.2, Color3.fromHex("FDBAD2")),
+        ColorSequenceKeypoint.new(0.4, Color3.fromHex("FCA5C5")),
+        ColorSequenceKeypoint.new(0.6, Color3.fromHex("FB8FB7")),
+        ColorSequenceKeypoint.new(0.8, Color3.fromHex("FA7AA9")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("F9649B"))
+    }), "waves"},
+}
+
+Window:EditOpenButton(
+    {
+        Title = "<font color='#FFB6C1'>X</font><font color='#FFA0B5'>I</font><font color='#FF8AA9'>A</font><font color='#FF749D'>O</font><font color='#FF5E91'>X</font><font color='#FF4885'>I</font>",
+        Icon = "rbxassetid://123691280552142",
+        CornerRadius = UDim.new(0, 13),
+        StrokeThickness = 4,
+        Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(186, 19, 19)),ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 60, 129))}),
+        Draggable = true
+    }
+)
+
+local function createRainbowBorder(window, colorScheme, speed)
+    local mainFrame = window.UIElements.Main
+    if not mainFrame then return nil end
+    
+    local existingStroke = mainFrame:FindFirstChild("RainbowStroke")
+    if existingStroke then
+        existingStroke:Destroy()
+    end
+    
+    if not mainFrame:FindFirstChildOfClass("UICorner") then
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 16)
+        corner.Parent = mainFrame
+    end
+    
+    local rainbowStroke = Instance.new("UIStroke")
+    rainbowStroke.Name = "RainbowStroke"
+    rainbowStroke.Thickness = 2
+    rainbowStroke.Color = Color3.new(1, 1, 1)
+    rainbowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    rainbowStroke.LineJoinMode = Enum.LineJoinMode.Round
+    rainbowStroke.Parent = mainFrame
+    
+    local glowEffect = Instance.new("UIGradient")
+    glowEffect.Name = "GlowEffect"
+    
+    local schemeData = COLOR_SCHEMES[colorScheme or "樱花粉2"]
+    if schemeData then
+        glowEffect.Color = schemeData[1]
+    else
+        glowEffect.Color = COLOR_SCHEMES["樱花粉2"][1]
+    end
+    
+    glowEffect.Rotation = 0
+    glowEffect.Parent = rainbowStroke
+    
+    return rainbowStroke
+end
+
+local function startBorderAnimation(window, speed)
+    local mainFrame = window.UIElements.Main
+    if not mainFrame then return nil end
+    
+    local rainbowStroke = mainFrame:FindFirstChild("RainbowStroke")
+    if not rainbowStroke then return nil end
+    
+    local glowEffect = rainbowStroke:FindFirstChild("GlowEffect")
+    if not glowEffect then return nil end
+    
+    local animation = game:GetService("RunService").Heartbeat:Connect(function()
+        if not rainbowStroke or rainbowStroke.Parent == nil then
+            animation:Disconnect()
+            return
+        end
+        
+        local time = tick()
+        glowEffect.Rotation = (time * speed * 60) % 360
+    end)
+    
+    return animation
+end
+
+local borderAnimation
+local borderEnabled = true
+local currentColor = "樱花粉2"
+local animationSpeed = 5
+
+local rainbowStroke = createRainbowBorder(Window, currentColor, animationSpeed)
+if rainbowStroke then
+    borderAnimation = startBorderAnimation(Window, animationSpeed)
+end
 
 local TimeTag = Window:Tag({
     Title = "--:--",
@@ -150,13 +302,7 @@ if Response and Response.guild then
 else
     warn("Discord API Error: ", HttpService:JSONEncode(Response))
 end
-Tab:Button({
-    Title = "复制QQ群链接",
-    Description = "复制链接加入我的TF群",
-    Callback = function()
-        setclipboard("https://qun.qq.com/universal-share/share?ac=1&authKey=Y1pfa3iAOnJsHBtBfXCxO51jDmEYCCJZ3W9q8pLMZPenFvDSGAdxJ3KkcPkHR4e7&busi_data=eyJncm91cENvZGUiOiI0OTY0MTY4MDAiLCJ0b2tlbiI6IkFKTGxiTlRUMEFIYlhwMHdmYWNMNnV0SXpkK3ZjZWgrWlp3TFI3emY0QjNKWUpQbE5yS3hYMi94YTN1am03TFIiLCJ1aW4iOiIzMTE2NzgxMTY3In0%3D&data=oQuMEbzXCK1zMikSSJkatrFnAR7SnbNUSs7IOUEp9sgKQWLNgHisjFVUDpn0qKgbS17sTONLDXLm7fxt_yEv_w&svctype=4&tempid=h5_group_info")
-    end
-})
+
 Tab:Button({
     Title = "篡改",
     Desc = "玩的时候第一先开启这个功能一定要",
@@ -944,7 +1090,7 @@ UserInputService.InputBegan:Connect(function(input, isProcessed)
 end)
 
 Tab:Toggle({
-    Title = "墙打秒杀",
+    Title = "墙打秒杀（超大范围）",
     Value = false,
     Callback = function(state)
         wallComboSpamming = state
@@ -970,6 +1116,127 @@ Tab:Toggle({
             startAuraV1()
         else
             stopAuraV1()
+        end
+    end
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local enabled = false
+local conn
+local PlayersList = {}
+local index = 1
+local RANGE = 70  -- 攻击范围，可自行调大
+local DASH_INTERVAL = 0.25  -- 冲刺间隔，越小越快
+local lastDash = 0
+
+-- 获取本地角色
+local function C()
+    return LocalPlayer.Character
+end
+
+-- 获取根部件
+local function HRP()
+    if C() and C():FindFirstChild("Humanoid") then
+        return C().Humanoid.RootPart
+    end
+end
+
+-- 判断是否是好友
+local function isFriend(p)
+    return LocalPlayer:IsFriendsWith(p.UserId)
+end
+
+-- 触发冲刺
+local function triggerDash()
+    local now = tick()
+    if now - lastDash < DASH_INTERVAL then return end
+    lastDash = now
+    local hrp = HRP()
+    if not hrp then return end
+    local dashRemote = ReplicatedStorage.Remotes.Character:FindFirstChild("Dash")
+    if dashRemote then
+        pcall(function()
+            dashRemote:FireServer(
+                hrp.CFrame,
+                "L",
+                hrp.CFrame.LookVector,
+                nil,
+                now
+            )
+        end)
+    end
+end
+
+-- 获取攻击目标
+local function getTargets()
+    local targets = {}
+    local hrp = HRP()
+    if not hrp then return targets end
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            if isFriend(p) then continue end  -- 忽略好友
+            local hum = p.Character:FindFirstChild("Humanoid")
+            local root = p.Character:FindFirstChild("HumanoidRootPart")
+            if hum and root and hum.Health > 0 and not p.Character:GetAttribute("Invincible") then
+                if (root.Position - hrp.Position).Magnitude <= RANGE then
+                    table.insert(targets, p.Character)
+                end
+            end
+        end
+    end
+    return targets
+end
+
+-- 核心秒杀逻辑
+local function KillAura(count)
+    triggerDash()
+    local targets = getTargets()
+    for _, char in ipairs(targets) do
+        for i = 1, count do
+            PlayersList[index] = char
+            index += 1
+        end
+    end
+    if index > 1 then
+        local combo = ReplicatedStorage.Characters[LocalPlayer.Data.Character.Value].WallCombo
+        ReplicatedStorage.Remotes.Abilities.Ability:FireServer(combo, 69)
+        ReplicatedStorage.Remotes.Combat.Action:FireServer(
+            combo,
+            "",
+            4,
+            69,
+            {
+                BestHitCharacter = nil,
+                HitCharacters = PlayersList,
+                Ignore = {},
+                Actions = {}
+            }
+        )
+        table.clear(PlayersList)
+        index = 1
+    end
+end
+
+Tab:Toggle({
+    Flag = "23.5",
+    Title = "杀戮光环（秒杀）",
+    Value = false,
+    Callback = function(state)
+        enabled = state
+        if enabled then
+            conn = RunService.Heartbeat:Connect(function()
+
+                local count = (LocalPlayer.Data.Character.Value == "Gon") and 20 or 50
+                KillAura(count)
+            end)
+        else
+            if conn then
+                conn:Disconnect()
+                conn = nil
+            end
         end
     end
 })
@@ -1152,149 +1419,196 @@ local Tab = Window:Tab({
     Locked = false,
 })
 
-local expansionMethod = "Add"
-local hitboxX, hitboxY, hitboxZ = 0, 0, 0
-local isHitboxExpanded = false
-local hitModuleTable = nil
-local originalBox = nil
-local sizeModifier = Vector3.new(0, 0, 0)
+pcall(function()
+    setthreadidentity(8)
+end)
 
-local function setupHitboxHook()
-    if hitModuleTable and hitModuleTable._boxSizeModifierHookInstalled then
-        print("Hitbox hook already installed.")
-        return true
+local S = {
+    Players = game:GetService("Players"),
+    RunService = game:GetService("RunService"),
+    ReplicatedStorage = game:GetService("ReplicatedStorage"),
+    Cfg = {
+        Hitbox = false,
+        X = 150, -- X轴大小（可改10-150）
+        Y = 150, -- Y轴大小（可改10-150）
+        Z = 150, -- Z轴大小（可改10-150）
+        Multi = 3 -- 攻击倍率
+    },
+    Cache = {},
+    Conn = nil,
+    DashT = 0
+}
+local LP = S.Players.LocalPlayer
+getgenv().HitboxEnabled = false
+
+-- 获取本地角色根部件
+function S:HRP()
+    local c = LP.Character
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+
+-- 加载核心库
+function S:GetCore()
+    if self.Cache.Core then
+        return self.Cache.Core
     end
+    local ok, core = pcall(function()
+        return require(self.ReplicatedStorage:WaitForChild("Core", 10))
+    end)
+    if ok then
+        self.Cache.Core = core
+        return core
+    end
+end
+
+-- 碰撞箱修改核心逻辑
+function S:ToggleHitbox(state)
+    self.Cfg.Hitbox = state
+    getgenv().HitboxEnabled = state
+    local core = self:GetCore()
+    if not core or not core.Get then return end
+    local hit = core.Get("Combat", "Hit")
+    if not hit or not hit.Box then return end
     
-    local player = Players.LocalPlayer
-    local playerScripts = player:WaitForChild("PlayerScripts")
-    local combatFolder = playerScripts:WaitForChild("Combat")
-    local hitModule = combatFolder:WaitForChild("Hit")
-    
-    hitModuleTable = require(hitModule)
-    originalBox = hitModuleTable.Box
-    
-    hitModuleTable.Box = function(...)
-        local args = {...}
-        if args[3] and typeof(args[3]) == "table" then
-            local config = args[3]
-            if config.Size and typeof(config.Size) == "Vector3" then
-                if not config._originalSize then
-                    config._originalSize = config.Size
-                end
-                if expansionMethod == "Set" then
-                    config.Size = sizeModifier
-                elseif expansionMethod == "Add" then
-                    config.Size = config._originalSize + sizeModifier
-                end
-            end
-            return originalBox(...)
-        else
-            return originalBox(...)
+    if state then
+        if not self.Cache.OrigBox then
+            self.Cache.OrigBox = hit.Box
+        end
+        -- 扩大碰撞箱尺寸
+        hit.Box = function(_, char, data)
+            data = data or {}
+            data.Size = Vector3.new(self.Cfg.X, self.Cfg.Y, self.Cfg.Z)
+            return self.Cache.OrigBox(nil, char, data)
+        end
+    else
+        -- 恢复默认碰撞箱
+        if self.Cache.OrigBox then
+            hit.Box = self.Cache.OrigBox
         end
     end
-    hitModuleTable._boxSizeModifierHookInstalled = true
-    return true
 end
 
-local function applySigmaHitbox(x, y, z)
-    if not setupHitboxHook() then
-        warn("Failed to setup hitbox hook!")
-        return
+-- 攻击增强（提升命中伤害）
+function S:EnableEnhancer()
+    if self.Cache.HitProc then return end
+    local ok, hit = pcall(function()
+        return require(LP.PlayerScripts:WaitForChild("Combat"):WaitForChild("Hit"))
+    end)
+    if not ok or not hit.Process then return end
+    self.Cache.HitProc = hit.Process
+    hit.Process = function(...)
+        local best, targets, blocked = self.Cache.HitProc(...)
+        if not targets or #targets == 0 then
+            return best, targets, blocked
+        end
+        -- 多倍攻击触发
+        local r = self.ReplicatedStorage.Remotes.Combat.Action
+        for _ = 1, self.Cfg.Multi do
+            pcall(function()
+                r:FireServer(nil, "", 4, 69, {BestHitCharacter=nil, HitCharacters=targets, Ignore={}, Actions={}})
+            end)
+        end
+        return best, targets, blocked
     end
-    sizeModifier = Vector3.new(x, y, z)
-    print("Sigma hitbox expansion applied:", sizeModifier)
 end
 
+-- 恢复默认攻击逻辑
+function S:DisableEnhancer()
+    if not self.Cache.HitProc then return end
+    local ok, hit = pcall(function()
+        return require(LP.PlayerScripts.Combat.Hit)
+    end)
+    if ok then
+        hit.Process = self.Cache.HitProc
+    end
+    self.Cache.HitProc = nil
+end
+
+-- 自动冲刺辅助命中
+function S:StartDashLoop()
+    if self.Conn then return end
+    self.Conn = self.RunService.Heartbeat:Connect(function()
+        if tick() - self.DashT < 0.18 then return end
+        self.DashT = tick()
+        local hrp = self:HRP()
+        if hrp then
+            pcall(function()
+                self:GetCore().Library("Remote").Send("Dash", hrp.CFrame, "L", 1)
+            end)
+        end
+    end)
+end
+
+-- 停止冲刺循环
+function S:StopDashLoop()
+    if self.Conn then
+        self.Conn:Disconnect()
+        self.Conn = nil
+    end
+end
+
+Tab:Toggle({
+    Title = "碰撞箱扩大",
+    Desc = "开启后扩大攻击碰撞箱，提升命中概率",
+    Value = false,
+    Callback = function(v)
+        if v then
+            S:ToggleHitbox(true)
+            S:EnableEnhancer()
+            S:StartDashLoop()
+        else
+            S:ToggleHitbox(false)
+            S:DisableEnhancer()
+            S:StopDashLoop()
+        end
+    end
+})
+
+-- 自定义X轴大小（横向）
 Tab:Input({
-    Title = "X 轴向量",
-    Value = "0",
-    InputIcon = "bird",
-    Type = "Input",
-    Placeholder = "输入一个数字...",
-    Callback = function(input)
-        hitboxX = tonumber(input) or 0
-        print("Hitbox X vector set to:", hitboxX)
+    Title = "碰撞箱X轴",
+    Value = tostring(S.Cfg.X),
+    Callback = function(v)
+        v = tonumber(v)
+        if v then
+            S.Cfg.X = math.clamp(v, 10, 1000)
+            if S.Cfg.Hitbox then
+                S:ToggleHitbox(true) -- 实时更新尺寸
+            end
+        end
     end
 })
 
+-- 自定义Y轴大小（纵向）
 Tab:Input({
-    Title = "Y 轴向量",
-    Value = "0",
-    InputIcon = "bird",
-    Type = "Input",
-    Placeholder = "输入一个数字...",
-    Callback = function(input)
-        hitboxY = tonumber(input) or 0
-        print("Hitbox Y vector set to:", hitboxY)
+    Title = "碰撞箱Y轴",
+    Value = tostring(S.Cfg.Y),
+    Callback = function(v)
+        v = tonumber(v)
+        if v then
+            S.Cfg.Y = math.clamp(v, 10, 1000)
+            if S.Cfg.Hitbox then
+                S:ToggleHitbox(true)
+            end
+        end
     end
 })
 
+-- 自定义Z轴大小（前后）
 Tab:Input({
-    Title = "Z 轴向量",
-    Value = "0",
-    InputIcon = "bird",
-    Type = "Input",
-    Placeholder = "输入一个数字...",
-    Callback = function(input)
-        hitboxZ = tonumber(input) or 0
-        print("Hitbox Z vector set to:", hitboxZ)
+    Title = "碰撞箱Z轴",
+    Value = tostring(S.Cfg.Z),
+    Callback = function(v)
+        v = tonumber(v)
+        if v then
+            S.Cfg.Z = math.clamp(v, 10, 1000)
+            if S.Cfg.Hitbox then
+                S:ToggleHitbox(true)
+            end
+        end
     end
 })
 
-Tab:Dropdown({
-    Title = "扩展方法",
-    Values = {"Add", "Set"},
-    Value = "Add",
-    Multi = false,
-    AllowNone = false,
-    Callback = function(option)
-        expansionMethod = option
-        print("Hitbox method set to:", expansionMethod)
-    end
-})
-
-Tab:Button({
-    Title = "应用碰撞箱修改",
-    Desc = nil,
-    Locked = false,
-    Callback = function()
-        applySigmaHitbox(hitboxX, hitboxY, hitboxZ)
-        isHitboxExpanded = true
-    end
-})
-
-Tab:Button({
-    Title = "小幅扩展 (+5范围)",
-    Desc = nil,
-    Locked = false,
-    Callback = function()
-        hitboxX, hitboxY, hitboxZ = 5, 5, 5
-        applySigmaHitbox(hitboxX, hitboxY, hitboxZ)
-        isHitboxExpanded = true
-    end
-})
-
-Tab:Button({
-    Title = "中幅扩展 (+10范围)",
-    Desc = nil,
-    Locked = false,
-    Callback = function()
-        hitboxX, hitboxY, hitboxZ = 10, 10, 10
-        applySigmaHitbox(hitboxX, hitboxY, hitboxZ)
-        isHitboxExpanded = true
-    end
-})
-
-Tab:Button({
-    Title = "大幅扩展 (+20范围)",
-    Desc = nil,
-    Locked = false,
-    Callback = function()
-        hitboxX, hitboxY, hitboxZ = 20, 20, 20
-        applySigmaHitbox(hitboxX, hitboxY, hitboxZ)
-        isHitboxExpanded = true
-    end
-})
 local lightningCharacterSwapTab = Window:Tab({
     Title = "快速切换角色",
     Icon = "bird",
