@@ -39,8 +39,8 @@ if key ~= "" then
 end
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
-  Title = "因为你检测到通用",
-  Text = "正在启动XIAOXI通用",
+  Title = "因为你检测到终极战场",
+  Text = "正在启动XIAOXI终极战场",
   Icon = "rbxassetid://123691280552142",
   Duration = 1,
   Callback = bindable,
@@ -741,6 +741,238 @@ local function executeWallCombo()
         end
     end
 end
+
+local active = false -- 无敌开关
+local function getLocalPlayerCharacter()
+    return Players.LocalPlayer and Players.LocalPlayer.Character
+end
+local function generateActionNumber()
+    return "Action" .. math.random(1000, 9999)
+end
+local function getServerTime()
+    return tick()
+end
+local function wallcomboveryud()
+    local playerChar = getLocalPlayerCharacter()
+    if not playerChar then return false end
+    local head = playerChar:FindFirstChild("Head")
+    if not head then return false end
+    local LocalPlayer = Players.LocalPlayer
+    local charData = LocalPlayer:FindFirstChild("Data")
+    local charValue = charData and charData:FindFirstChild("Character") and charData.Character.Value
+    if not charValue then return false end
+    local charsFolder = ReplicatedStorage:FindFirstChild("Characters")
+    if not charsFolder or not charsFolder:FindFirstChild(charValue) then return false end
+    local wallComboAbility = charsFolder[charValue]:FindFirstChild("WallCombo")
+    if not wallComboAbility then return false end
+    local targetCharacter = playerChar
+    if not targetCharacter then return false end
+    local actionNumber = generateActionNumber()
+    local serverTime = getServerTime()
+    local randomId = math.random(100000, 999999)
+    local remoteArgs = {
+        wallComboAbility,
+        "Characters:" .. charValue .. ":WallCombo",
+        1,
+        randomId,
+        {
+            HitboxCFrames = {nil},
+            BestHitCharacter = targetCharacter,
+            HitCharacters = {targetCharacter},
+            Ignore = {[actionNumber] = {targetCharacter}},
+            DeathInfo = {},
+            Actions = {[actionNumber] = {}},
+            HitInfo = {
+                Blocked = false,
+                IsFacing = true,
+                IsInFront = true
+            },
+            BlockedCharacters = {},
+            ServerTime = serverTime,
+            FromCFrame = nil
+        },
+        actionNumber
+    }
+    pcall(function()
+        ReplicatedStorage.Remotes.Abilities.Ability:FireServer(wallComboAbility, randomId)
+    end)
+    pcall(function()
+        ReplicatedStorage.Remotes.Combat.Action:FireServer(unpack(remoteArgs))
+    end)
+end
+-- 无敌循环执行
+task.spawn(function()
+    while task.wait(0.01) do
+        if active then
+            pcall(wallcomboveryud)
+        end
+    end
+end)
+-- 无敌开关函数
+function ToggleInvincibility(state)
+    active = state
+    print(state and "无敌已开启" or "无敌已关闭")
+end
+
+local KillauraV1 = {
+    IgnoreFriends = false,
+    MaxDistance = 100,
+    Damage = 9999,
+    HealthLimit = 0,
+    DashInterval = 0.7,
+    AttackInterval = 0.001,
+    running = false,
+    conn = nil,
+    lastDash = 0,
+    lastAttack = 0
+}
+local data = Players.LocalPlayer:WaitForChild("Data")
+local charValue = data:WaitForChild("Character")
+local localCharacterName = charValue.Value
+local ability = ReplicatedStorage:WaitForChild("Characters"):WaitForChild(localCharacterName):WaitForChild("WallCombo")
+local AbilitiesRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Abilities"):WaitForChild("Ability")
+local CombatRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Combat"):WaitForChild("Action")
+local function getLocalRootPart()
+    local c = Players.LocalPlayer.Character
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+local function triggerDash()
+    if tick() - KillauraV1.lastDash < KillauraV1.DashInterval then return end
+    KillauraV1.lastDash = tick()
+    local hrp = getLocalRootPart()
+    if not hrp then return end
+    local dashRemote = ReplicatedStorage.Remotes.Character:FindFirstChild("Dash")
+    if dashRemote then
+        pcall(function()
+            dashRemote:FireServer(hrp.CFrame, "L", hrp.CFrame.LookVector, nil, tick())
+        end)
+    end
+end
+local function sendKillAuraV1()
+    if tick() - KillauraV1.lastAttack < KillauraV1.AttackInterval then return end
+    KillauraV1.lastAttack = tick()
+    local localRootPart = getLocalRootPart()
+    if not localRootPart then return end
+    triggerDash()
+    local maxDistSq = KillauraV1.MaxDistance * KillauraV1.MaxDistance
+    for _, targetPlayer in ipairs(Players:GetPlayers()) do
+        if targetPlayer ~= Players.LocalPlayer then
+            local targetChar = targetPlayer.Character
+            if targetChar then
+                local targetRootPart = targetChar:FindFirstChild("HumanoidRootPart")
+                local targetHumanoid = targetChar:FindFirstChild("Humanoid")
+                if targetRootPart and targetHumanoid and targetHumanoid.Health > KillauraV1.HealthLimit then
+                    if not (KillauraV1.IgnoreFriends and Players.LocalPlayer:IsFriendsWith(targetPlayer.UserId)) then
+                        local delta = localRootPart.Position - targetRootPart.Position
+                        if delta.Magnitude * delta.Magnitude <= maxDistSq then
+                            pcall(function()
+                                AbilitiesRemote:FireServer(ability, KillauraV1.Damage, {}, targetRootPart.Position)
+                            end)
+                            pcall(function()
+                                CombatRemote:FireServer(
+                                    ability,
+                                    localCharacterName .. ":WallCombo",
+                                    2,
+                                    KillauraV1.Damage,
+                                    {
+                                        HitboxCFrames = {targetRootPart.CFrame, targetRootPart.CFrame},
+                                        BestHitCharacter = targetChar,
+                                        HitCharacters = {targetChar},
+                                        Ignore = {},
+                                        DeathInfo = {},
+                                        BlockedCharacters = {},
+                                        HitInfo = {IsFacing = false, IsInFront = true},
+                                        ServerTime = os.time(),
+                                        Actions = {
+                                            ActionNumber1 = {
+                                                [targetPlayer.Name] = {
+                                                    StartCFrameStr = tostring(localRootPart.CFrame),
+                                                    Local = true,
+                                                    Collision = false,
+                                                    Animation = "Punch1Hit",
+                                                    Preset = "Punch",
+                                                    Velocity = Vector3.zero,
+                                                    FromPosition = targetRootPart.Position,
+                                                    Seed = math.random(1,999999)
+                                                }
+                                            }
+                                        },
+                                        FromCFrame = targetRootPart.CFrame
+                                    },
+                                    "Action150",
+                                    0
+                                )
+                            end)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+local function startAuraV1()
+    if KillauraV1.conn then KillauraV1.conn:Disconnect() KillauraV1.conn = nil end
+    KillauraV1.conn = RunService.Heartbeat:Connect(function()
+        if KillauraV1.running then
+            sendKillAuraV1()
+        end
+    end)
+end
+local function stopAuraV1()
+    if KillauraV1.conn then KillauraV1.conn:Disconnect() KillauraV1.conn = nil end
+end
+
+local function updateWallComboHeartbeat()
+    if wallComboHeartbeat then
+        wallComboHeartbeat:Disconnect()
+        wallComboHeartbeat = nil
+    end
+    if wallComboSpamming then
+        wallComboHeartbeat = RunService.Heartbeat:Connect(function()
+            for i = 1, wallComboPerFrame do
+                executeWallCombo()
+            end
+        end)
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input, isProcessed)
+    if isProcessed then return end
+    if input.KeyCode == wallComboKeybind then
+        executeWallCombo()
+    end
+end)
+
+Tab:Toggle({
+    Title = "墙打秒杀",
+    Value = false,
+    Callback = function(state)
+        wallComboSpamming = state
+        updateWallComboHeartbeat()
+    end
+})
+
+-- 【新增：无敌开关UI】
+Tab:Toggle({
+    Title = "无敌",
+    Value = false,
+    Callback = function(state)
+        ToggleInvincibility(state)
+    end
+})
+
+Tab:Toggle({
+    Title = "杀戮光环（暴力）",
+    Value = false,
+    Callback = function(state)
+        KillauraV1.running = state
+        if state then
+            startAuraV1()
+        else
+            stopAuraV1()
+        end
+    end
+})
 
 local function updateWallComboHeartbeat()
     if wallComboHeartbeat then
