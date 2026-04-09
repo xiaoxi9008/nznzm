@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIAOXI | 混淆器 - LuaU 代码加密工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        /* 头部标题 */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .header p {
+            font-size: 18px;
+            color: #b0b0b0;
+        }
+        /* 代码输入区 */
+        .code-section {
+            margin-bottom: 50px;
+        }
+        .code-input {
+            width: 100%;
+            height: 350px;
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 16px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #00ff88;
+            resize: none;
+            outline: none;
+        }
+        .code-input:focus {
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .obfuscate-btn, .download-btn {
+            width: 280px;
+            height: 60px;
+            background: transparent;
+            border: 2px solid #555555;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .obfuscate-btn:hover {
+            border-color: #00ff88;
+            color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        .download-btn:hover {
+            border-color: #ff5500;
+            color: #ff5500;
+            box-shadow: 0 0 15px rgba(255, 85, 0, 0.3);
+        }
+        .download-btn:disabled {
+            border-color: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        /* 介绍部分 */
+        .info-section {
+            margin-bottom: 50px;
+        }
+        .info-section h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        .info-section p {
+            font-size: 18px;
+            color: #cccccc;
+            max-width: 1000px;
+        }
+        /* 前后对比区 */
+        .compare-section {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .compare-box {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .compare-box h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .before h3 {
+            color: #ffcc00;
+        }
+        .after h3 {
+            color: #00ff88;
+        }
+        .code-block {
+            background: #252525;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            color: #ffffff;
+            overflow-x: auto;
+        }
+        .before .code-block {
+            color: #ffdd55;
+        }
+        .after .code-block {
+            color: #00ff88;
+            opacity: 0.8;
+        }
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .compare-section {
+                flex-direction: column;
+            }
+            .header h1 {
+                font-size: 32px;
+            }
+            .btn-group {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>XIAOXI | 混淆器</h1>
+            <p>专为 Roblox LuaU 脚本打造的代码加密工具</p>
+        </div>
+
+        <!-- 代码输入区 -->
+        <div class="code-section">
+            <textarea id="inputCode" class="code-input" placeholder="在这里粘贴你的 LuaU 脚本..."></textarea>
+            <div class="btn-group">
+                <button class="obfuscate-btn" onclick="obfuscateCode()">立即混淆</button>
+                <button class="download-btn" id="downloadBtn" onclick="downloadCode()" disabled>下载文件</button>
+            </div>
+        </div>
+
+        <!-- 介绍部分 -->
+        <div class="info-section">
+            <h2>什么是代码混淆器？</h2>
+            <p>这款工具可以对你的 Lua 代码进行混淆加密，让他人难以阅读和逆向工程。通过将源代码转换为更复杂、不可读的格式，在保证功能正常运行的同时，保护你的知识产权。非常适合需要为脚本添加额外安全层的开发者使用。</p>
+
+            <!-- 前后对比 -->
+            <div class="compare-section">
+                <div class="compare-box before">
+                    <h3>混淆前</h3>
+                    <div class="code-block">print("Hello, world!")</div>
+                </div>
+                <div class="compare-box after">
+                    <h3>混淆后</h3>
+                    <div class="code-block">
+return (function(...)
+local t={
+'\055\069\101\099\121\051\101\107\087\120\107\054\08\055\115\121\115\061\\"\055\043\056\113\121\112\097\060\089\117\\"
+}
+local s=""
+for i=1,#t[1] do
+s=s..string.char(bit32.bxor(string.byte(t[1],i),123))
+end
+loadstring(s)()
+end)()
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量存储混淆后的代码
+        let lastObfuscatedCode = "";
+
+        // 混淆核心引擎
+        function randomName(length = 12) {
+            const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let name = "";
+            for (let i = 0; i < length; i++) {
+                name += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return name;
+        }
+
+        function stringToByteCode(str) {
+            let bytes = [];
+            for (let i = 0; i < str.length; i++) {
+                bytes.push(str.charCodeAt(i));
+            }
+            return bytes;
+        }
+
+        function obfuscateCode() {
+            const input = document.getElementById("inputCode").value;
+            if (!input.trim()) {
+                alert("请先粘贴你的 LuaU 脚本！");
+                return;
+            }
+
+            // 1. 字符串加密（XOR 混淆 + 字节编码）
+            const key = Math.floor(Math.random() * 255);
+            let encrypted = "";
+            for (let i = 0; i < input.length; i++) {
+                encrypted += String.fromCharCode(input.charCodeAt(i) ^ key);
+            }
+            const base64Enc = btoa(unescape(encodeURIComponent(encrypted)));
+
+            // 2. 生成随机变量名
+            const var1 = randomName();
+            const var2 = randomName();
+            const var3 = randomName();
+
+            // 3. 生成混淆后的代码（VM 风格，带署名）
+            const obfuscated = `-- 混淆由 XIAOXI | 混淆器 生成
+return (function(...)
+local ${var1} = {"${base64Enc}"}
+local ${var2} = ""
+local ${var3} = ${key}
+for i=1,#${var1}[1] do
+${var2} = ${var2} .. string.char(bit32.bxor(string.byte(${var1}[1],i),${var3}))
+end
+loadstring(${var2})()
+end)()`;
+
+            // 4. 替换输入框为混淆结果，启用下载按钮
+            document.getElementById("inputCode").value = obfuscated;
+            lastObfuscatedCode = obfuscated;
+            document.getElementById("downloadBtn").disabled = false;
+            alert("混淆完成！可直接复制或点击下载文件");
+        }
+
+        // 下载文件功能
+        function downloadCode() {
+            if (!lastObfuscatedCode) {
+                alert("请先进行代码混淆！");
+                return;
+            }
+
+            // 创建下载链接
+            const blob = new Blob([lastObfuscatedCode], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "XIAOXI_混淆结果.lua"; // 下载文件名
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
