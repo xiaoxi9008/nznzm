@@ -19,14 +19,14 @@ local TweenService = game:GetService("TweenService")
 
 if game:GetService("Players").LocalPlayer:GetAttribute("SupremeLoaded") then 
 if getgenv().Library then
-getgenv().Library:Notify("Supreme Hub 『 Already Loaded 』",4)
+getgenv().Library:Notify("XIAOXI SCRIPT 『 Already Loaded 』",4)
 else
-print("Supreme Hub 『 Already Loaded 』")
+print("XIAOXI SCRIPT 『 Already Loaded 』")
 end
 return end
 game:GetService("Players").LocalPlayer:SetAttribute("SupremeLoaded",true)
 
-local LibraryName = 'Supreme Hub'
+local LibraryName = 'XIAOXI SCRIPT'
 
 
 local executionCount = 0
@@ -950,7 +950,7 @@ elseif Notifying == "Doors" then
 
 elseif Notifying == "Supreme" then
 NotificationHandler:Create({
-		Title = "Supreme Hub",
+		Title = "XIAOXI SCRIPT",
 		Description = txt,
 		Duration = duration,
 		Image = "",
